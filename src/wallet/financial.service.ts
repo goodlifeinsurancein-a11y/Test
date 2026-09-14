@@ -83,6 +83,14 @@ export class FinancialService {
   async placeCrashBet(input: { betId: string; playerId: string; roundId: string; amount: number; autoCashoutMultiplier?: number; idempotencyKey?: string }) {
     const amountUnits = this.wholeTokensToUnits(input.amount);
     const idempotencyKey = this.newIdempotencyKey(input.idempotencyKey);
+    const { data: wallet, error } = await this.supabase.getClient()
+      .from('wallets')
+      .select('id')
+      .eq('user_id', input.playerId)
+      .maybeSingle();
+    if (error) throw new InternalServerErrorException(error.message);
+    if (!wallet) throw new NotFoundException('Player wallet not found');
+
     return this.rpc('finance_place_crash_bet_atomic', {
       p_bet_id: input.betId,
       p_player_id: input.playerId,
@@ -91,6 +99,7 @@ export class FinancialService {
       p_auto_cashout_multiplier: input.autoCashoutMultiplier ?? null,
       p_idempotency_key: idempotencyKey,
       p_request_hash: this.requestHash({ ...input, amountUnits, idempotencyKey }),
+      p_wallet_id: wallet.id,
     });
   }
 
