@@ -55,6 +55,11 @@ export class PokerRoundEngine {
     return this.lastResult ? this.cloneResult(this.lastResult) : null;
   }
 
+  /** Backward-compatible alias for callers using the previous API name. */
+  getLastResult(): PokerRoundResult | null {
+    return this.getLastCompletedRound();
+  }
+
   placeBet(playerId: string, amount: number): void {
     const round = this.current;
     if (!round || round.status !== 'BETTING') {
@@ -132,7 +137,6 @@ export class PokerRoundEngine {
     this.current.status = 'LOCK';
     this.current.lockedAt = Date.now();
 
-    // Auto-hold best cards if player didn't submit hold
     for (const player of this.current.players) {
       if (!player.bet.hold) {
         player.bet.hold = [];
