@@ -103,8 +103,9 @@ describe('TeenPattiRoundEngine', () => {
     engine.placeBet('player', 10);
     advanceTo(engine, 'RESULT');
     const visible = engine.getTeenPattiState();
+    const originalRank = visible?.dealerCards[0]?.rank;
     visible?.dealerCards[0] && (visible.dealerCards[0].rank = '2');
-    expect(engine.getTeenPattiState()?.dealerCards[0]?.rank).not.toBe('2');
+    expect(engine.getTeenPattiState()?.dealerCards[0]?.rank).toBe(originalRank);
     vi.advanceTimersByTime(5_000);
     vi.advanceTimersByTime(1);
     expect(shuffle).toHaveBeenCalledTimes(2);
