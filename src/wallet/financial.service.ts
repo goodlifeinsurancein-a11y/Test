@@ -64,7 +64,7 @@ export class FinancialService {
       .select('id')
       .eq('user_id', input.playerId)
       .maybeSingle();
-    if (error) throw new InternalServerErrorException(error.message);
+    if (error) throw new InternalServerErrorException('Unable to access player wallet');
     if (!wallet) throw new NotFoundException('Player wallet not found');
 
     return this.rpc('finance_place_bet_atomic', {
@@ -88,7 +88,7 @@ export class FinancialService {
       .select('id')
       .eq('user_id', input.playerId)
       .maybeSingle();
-    if (error) throw new InternalServerErrorException(error.message);
+    if (error) throw new InternalServerErrorException('Unable to access player wallet');
     if (!wallet) throw new NotFoundException('Player wallet not found');
 
     return this.rpc('finance_place_crash_bet_atomic', {
@@ -177,7 +177,10 @@ export class FinancialService {
   private async rpc(name: string, params: Record<string, unknown>) {
     const { data, error } = await this.supabase.getClient().rpc(name, params);
     if (!error) return data;
-    if (/insufficient|closed|invalid|idempotency|required|not pending|not eligible|disabled/i.test(error.message)) throw new BadRequestException(error.message);
-    throw new InternalServerErrorException(`Financial operation failed: ${error.message}`);
+    const message = error.message ?? '';
+    if (/insufficient|closed|invalid|idempotency|required|not pending|not eligible|disabled/i.test(message)) {
+      throw new BadRequestException('Financial operation cannot be completed');
+    }
+    throw new InternalServerErrorException('Financial operation failed');
   }
 }
