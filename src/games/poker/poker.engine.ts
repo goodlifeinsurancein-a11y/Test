@@ -107,19 +107,21 @@ export class PokerEngine {
 
     const values = cards.map((card) => RANK_VALUES[card.rank]).sort((a, b) => b - a);
     const suits = cards.map((card) => card.suit);
+    const aceLow = this.isAceLowStraight(values);
+    const straightComparison = aceLow ? [5, 4, 3, 2, 1] : values;
 
     if (this.isFlush(suits)) {
       if (this.isStraight(values)) {
         if (values[0] === 14 && values[1] === 13 && values[2] === 12 && values[3] === 11 && values[4] === 10) {
           return this.makeHand(cards, 'ROYAL_FLUSH', 10, values);
         }
-        return this.makeHand(cards, 'STRAIGHT_FLUSH', 9, values);
+        return this.makeHand(cards, 'STRAIGHT_FLUSH', 9, straightComparison);
       }
       return this.makeHand(cards, 'FLUSH', 6, values);
     }
 
     if (this.isStraight(values)) {
-      return this.makeHand(cards, 'STRAIGHT', 5, values);
+      return this.makeHand(cards, 'STRAIGHT', 5, straightComparison);
     }
 
     const freq = this.frequencies(values);
@@ -239,19 +241,15 @@ export class PokerEngine {
     return suits.every((suit) => suit === suits[0]);
   }
 
+  private isAceLowStraight(sortedValues: readonly number[]): boolean {
+    return sortedValues[0] === 14 && sortedValues[1] === 5 && sortedValues[2] === 4 && sortedValues[3] === 3 && sortedValues[4] === 2;
+  }
+
   private isStraight(sortedValues: readonly number[]): boolean {
     const set = new Set(sortedValues);
     if (set.size !== 5) return false;
-
-    // Normal straight: consecutive high-to-low
     if (sortedValues[0] - sortedValues[4] === 4) return true;
-
-    // Ace-low straight (A-2-3-4-5)
-    if (sortedValues[0] === 14 && sortedValues[1] === 5 && sortedValues[2] === 4 && sortedValues[3] === 3 && sortedValues[4] === 2) {
-      return true;
-    }
-
-    return false;
+    return this.isAceLowStraight(sortedValues);
   }
 
   private frequencies(values: readonly number[]): Map<number, number> {
