@@ -12,7 +12,7 @@ export class FinancialCoinService {
       .select('id,wallet_id,user_id,balance_units,version,created_at,updated_at')
       .eq('user_id', userId)
       .maybeSingle();
-    if (error) throw new InternalServerErrorException(error.message);
+    if (error) throw new InternalServerErrorException('Unable to read wallet balance');
     if (!data) throw new NotFoundException('Wallet not found');
     return {
       success: true,
@@ -39,16 +39,16 @@ export class FinancialCoinService {
   async getRechargeRequests(userId: string) {
     const { data, error } = await this.supabase.getClient()
       .from('coin_recharge_requests')
-      .select('id,requester_id,target_user_id,amount,status,approved_by,rejection_reason,created_at,decided_at,idempotency_key')
+      .select('id,requester_id,target_user_id,amount,amount_units,status,approved_by,rejection_reason,created_at,decided_at,idempotency_key')
       .or(`requester_id.eq.${userId},target_user_id.eq.${userId}`)
       .order('created_at', { ascending: false });
-    if (error) throw new InternalServerErrorException(error.message);
+    if (error) throw new InternalServerErrorException('Unable to read recharge history');
     return {
       success: true,
       requests: (data ?? []).map((request) => ({
         ...request,
         amount: String(request.amount),
-        amount_units: String(BigInt(Math.round(Number(request.amount) * 10))),
+        amount_units: String(request.amount_units),
       })),
     };
   }
