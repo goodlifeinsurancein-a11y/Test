@@ -224,7 +224,7 @@ export class PokerRoundEngine {
   }
 
   private publicState(round: PokerRoundState): PokerRoundState {
-    const visible = round.status === 'RESULT' || round.status === 'COMPLETED';
+    const visible = round.status !== 'BETTING' && round.status !== 'LOCK';
     return {
       ...round,
       players: round.players.map((player) => this.clonePlayer(player, visible)),

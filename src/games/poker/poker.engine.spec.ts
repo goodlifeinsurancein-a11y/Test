@@ -739,7 +739,7 @@ describe('PokerRoundEngine', () => {
     round.start();
     round.placeBet('p1', 100);
     vi.advanceTimersByTime(15_000); // LOCK
-    vi.advanceTimersByTime(0); // DEAL
+    vi.advanceTimersByTime(1); // DEAL
 
     const state = round.getState();
     expect(state?.status).toBe('DEAL');
@@ -755,11 +755,12 @@ describe('PokerRoundEngine', () => {
     const first = round.start();
     round.placeBet('p1', 100);
 
-    vi.advanceTimersByTime(15_000); // LOCK → DEAL
-    vi.advanceTimersByTime(0); // DEAL → COMPARE
+    vi.advanceTimersByTime(15_000); // BETTING → LOCK
+    vi.advanceTimersByTime(1); // LOCK → DEAL
+    vi.advanceTimersByTime(1_000); // DEAL → COMPARE
     vi.advanceTimersByTime(1_000); // COMPARE → SETTLEMENT
-    vi.advanceTimersByTime(1_000); // SETTLEMENT → RESULT
-    vi.advanceTimersByTime(5_000); // RESULT → COMPLETED
+    vi.advanceTimersByTime(5_000); // SETTLEMENT → RESULT
+    vi.advanceTimersByTime(1_000); // RESULT → COMPLETED
 
     const result = round.getLastResult();
     expect(result).not.toBeNull();
@@ -780,11 +781,12 @@ describe('PokerRoundEngine', () => {
     round.placeBet('p1', 100);
 
     vi.advanceTimersByTime(15_000);
-    vi.advanceTimersByTime(0);
-    vi.advanceTimersByTime(1_000);
-    vi.advanceTimersByTime(1_000);
-    vi.advanceTimersByTime(5_000);
-    vi.advanceTimersByTime(0); // next round
+    vi.advanceTimersByTime(1); // LOCK → DEAL
+    vi.advanceTimersByTime(1_000); // DEAL → COMPARE
+    vi.advanceTimersByTime(1_000); // COMPARE → SETTLEMENT
+    vi.advanceTimersByTime(5_000); // SETTLEMENT → RESULT
+    vi.advanceTimersByTime(1_000); // RESULT → COMPLETED
+    vi.advanceTimersByTime(1); // COMPLETED → next BETTING
 
     const state = round.getState();
     expect(state?.status).toBe('BETTING');
