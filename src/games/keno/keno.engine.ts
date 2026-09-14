@@ -1,6 +1,9 @@
 import { randomInt } from 'node:crypto';
 import { KenoBet, KenoResult, KenoSettlement, KENO_PAYOUT_TABLE, KENO_BOARD_SIZE, KENO_DRAW_SIZE, MIN_PICKS, MAX_PICKS } from './keno.types.js';
 
+// Re-export the public draw constants used by consumers/tests of the engine.
+export { KENO_BOARD_SIZE, KENO_DRAW_SIZE } from './keno.types.js';
+
 export class KenoEngine {
   validateBet(bet: { betId: string; picks: number[]; amount: number }): void {
     if (!bet.betId || typeof bet.betId !== 'string' || bet.betId.trim().length === 0) throw new Error('Invalid betId');
@@ -16,7 +19,6 @@ export class KenoEngine {
 
   draw(): number[] {
     const board = Array.from({ length: KENO_BOARD_SIZE }, (_, i) => i + 1);
-    // Fisher-Yates shuffle, take first DRAW_SIZE
     for (let i = KENO_BOARD_SIZE - 1; i > 0; i--) {
       const j = randomInt(i + 1);
       [board[i], board[j]] = [board[j], board[i]];
@@ -27,7 +29,6 @@ export class KenoEngine {
   getMultiplier(pickCount: number, matches: number): number {
     const table = KENO_PAYOUT_TABLE[pickCount];
     if (table && table[matches] !== undefined) return table[matches];
-    // Default: linear scaling for non-table entries
     if (matches === pickCount) return Math.pow(2, pickCount) * 2;
     return 0;
   }
